@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nimo_todo/security/app_lock_controller.dart';
+import 'package:nimo_todo/ui/screens/passcode_setup_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -30,12 +31,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return SwitchListTile(
               value: enabled,
               title: const Text('App lock'),
-              subtitle: const Text('Use device biometric/passcode to open the app.'),
+              subtitle: const Text('Use biometric or passcode to open the app.'),
               onChanged: (v) async {
                 await _lock.setEnabled(v);
                 if (mounted) setState(() {});
               },
               secondary: const Icon(Icons.lock_outline),
+            );
+          },
+        ),
+        FutureBuilder<bool>(
+          future: _lock.isEnabled(),
+          builder: (context, snap) {
+            final enabled = snap.data ?? false;
+            return FutureBuilder<String?>(
+              future: _lock.passcode(),
+              builder: (context, pSnap) {
+                final hasPasscode = (pSnap.data ?? '').isNotEmpty;
+                return ListTile(
+                  enabled: enabled,
+                  leading: const Icon(Icons.password_outlined),
+                  title: const Text('Passcode'),
+                  subtitle: Text(hasPasscode ? 'Passcode set' : 'Not set'),
+                  trailing: hasPasscode
+                      ? TextButton(
+                          onPressed: !enabled
+                              ? null
+                              : () async {
+                                  await _lock.setPasscode(null);
+                                  if (mounted) setState(() {});
+                                },
+                          child: const Text('Remove'),
+                        )
+                      : null,
+                  onTap: !enabled
+                      ? null
+                      : () async {
+                          final ok = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(builder: (_) => const PasscodeSetupScreen()),
+                          );
+                          if (ok == true && mounted) setState(() {});
+                        },
+                );
+              },
             );
           },
         ),

@@ -1,66 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:nimo_todo/security/app_lock_controller.dart';
 
-class LockScreen extends StatefulWidget {
-  const LockScreen({super.key});
+class PasscodeSetupScreen extends StatefulWidget {
+  const PasscodeSetupScreen({super.key});
 
   @override
-  State<LockScreen> createState() => _LockScreenState();
+  State<PasscodeSetupScreen> createState() => _PasscodeSetupScreenState();
 }
 
-class _LockScreenState extends State<LockScreen> {
+class _PasscodeSetupScreenState extends State<PasscodeSetupScreen> {
   final _lock = AppLockController();
-  bool _busy = false;
+
+  String _step = 'new'; // new | confirm
+  String _first = '';
+  String _input = '';
   String? _error;
 
-  String _input = '';
-  String? _passcode;
-  bool _hasBiometrics = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    _passcode = await _lock.passcode();
-    _hasBiometrics = await _lock.hasBiometrics();
-    if (!mounted) return;
-    setState(() {});
-
-    // If biometrics available, try immediately for a smooth UX.
-    if (_hasBiometrics) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _unlockWithBiometrics());
-    }
-  }
-
-  Future<void> _unlockWithBiometrics() async {
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-
-    try {
-      final ok = await _lock.authenticateBiometricOrDevice();
-      if (!mounted) return;
-      if (ok) {
-        Navigator.pop(context, true);
-      } else {
-        setState(() => _error = 'Authentication failed.');
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
   void _onDigit(String d) {
-    if (_busy) return;
-    if (_passcode == null) {
-      setState(() => _error = 'Set a passcode in Settings.');
-      return;
-    }
-
     if (_input.length >= 4) return;
     setState(() {
       _input += d;
@@ -68,20 +24,29 @@ class _LockScreenState extends State<LockScreen> {
     });
 
     if (_input.length == 4) {
-      final ok = _input == _passcode;
-      if (ok) {
-        Navigator.pop(context, true);
-      } else {
+      if (_step == 'new') {
         setState(() {
+          _first = _input;
           _input = '';
-          _error = 'Wrong passcode.';
+          _step = 'confirm';
         });
+      } else {
+        if (_input == _first) {
+          _lock.setPasscode(_input);
+          Navigator.pop(context, true);
+        } else {
+          setState(() {
+            _error = 'Passcodes do not match.';
+            _input = '';
+            _step = 'new';
+            _first = '';
+          });
+        }
       }
     }
   }
 
   void _onBackspace() {
-    if (_busy) return;
     if (_input.isEmpty) return;
     setState(() {
       _input = _input.substring(0, _input.length - 1);
@@ -91,9 +56,11 @@ class _LockScreenState extends State<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final title = _step == 'new' ? 'Set passcode' : 'Confirm passcode';
     final dots = List.generate(4, (i) => i < _input.length);
 
     return Scaffold(
+      appBar: AppBar(title: const Text('Passcode')),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -101,17 +68,8 @@ class _LockScreenState extends State<LockScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.lock, size: 56, color: Theme.of(context).colorScheme.primary),
+                Text(title, style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 12),
-                Text('Locked', style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 6),
-                Text(
-                  _passcode == null
-                      ? 'Set a passcode in Settings to unlock without biometrics.'
-                      : 'Enter passcode to continue.',
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -134,16 +92,11 @@ class _LockScreenState extends State<LockScreen> {
                   Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                 ],
                 const SizedBox(height: 16),
-                if (_hasBiometrics)
-                  FilledButton.icon(
-                    onPressed: _busy ? null : _unlockWithBiometrics,
-                    icon: const Icon(Icons.fingerprint),
-                    label: Text(_busy ? 'Checking…' : 'Use biometrics'),
-                  ),
+                _PinPad(onDigit: _onDigit, onBackspace: _onBackspace),
                 const SizedBox(height: 12),
-                _PinPad(
-                  onDigit: _onDigit,
-                  onBackspace: _onBackspace,
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
                 ),
               ],
             ),
