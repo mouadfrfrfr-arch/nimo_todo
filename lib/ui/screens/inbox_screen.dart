@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nimo_todo/data/models/task.dart';
 import 'package:nimo_todo/data/repos/task_repository.dart';
+import 'package:nimo_todo/ui/widgets/premium_task_tile.dart';
 
 class InboxScreen extends StatefulWidget {
   const InboxScreen({super.key});
@@ -24,36 +25,34 @@ class _InboxScreenState extends State<InboxScreen> {
         }
         final items = snap.data ?? const <Task>[];
 
-        if (items.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('Inbox is empty.\nTap “Add task” to capture something quickly.'),
-            ),
-          );
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.all(12),
-          itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, i) {
-            final t = items[i];
-            return Card(
-              child: ListTile(
-                leading: Checkbox(
-                  value: t.isDone,
-                  onChanged: (v) async {
-                    if (t.id == null) return;
-                    await _repo.setDone(id: t.id!, isDone: v ?? false);
-                    if (mounted) setState(() {});
-                  },
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+          children: [
+            Text('Inbox', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 4),
+            Text('Quick capture', style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 16),
+            if (items.isEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Text(
+                    'Inbox is empty. Tap “Add task” to capture something quickly.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
-                title: Text(t.title),
-                subtitle: (t.notes == null) ? null : Text(t.notes!),
               ),
-            );
-          },
+            ...items.map(
+              (t) => PremiumTaskTile(
+                task: t,
+                onToggle: (isDone) async {
+                  if (t.id == null) return;
+                  await _repo.setDone(id: t.id!, isDone: isDone);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ),
+          ],
         );
       },
     );
