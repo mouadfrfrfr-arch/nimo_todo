@@ -11,6 +11,7 @@ class TaskRepository {
     required String title,
     String? notes,
     required String listId,
+    DateTime? dueAt,
   }) async {
     final db = await _appDb.db;
     final now = DateTime.now();
@@ -20,7 +21,7 @@ class TaskRepository {
       title: title.trim(),
       notes: (notes == null || notes.trim().isEmpty) ? null : notes.trim(),
       createdAt: now,
-      dueAt: null,
+      dueAt: dueAt,
       isDone: false,
       priority: 0,
       listId: listId,
