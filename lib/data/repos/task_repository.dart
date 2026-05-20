@@ -88,6 +88,32 @@ class TaskRepository {
     return rows.map(TaskMapper.fromRow).toList();
   }
 
+  Future<List<Task>> listUpcomingScheduledTasks({DateTime? now}) async {
+    final db = await _appDb.db;
+    final n = now ?? DateTime.now();
+    final start = DateUtilsX.startOfDay(n);
+
+    // All scheduled (has due_at), today and future
+    final rows = await db.query(
+      'tasks',
+      where: 'is_done = 0 AND due_at IS NOT NULL AND due_at >= ?',
+      whereArgs: [start.toIso8601String()],
+      orderBy: 'due_at ASC',
+    );
+
+    return rows.map(TaskMapper.fromRow).toList();
+  }
+
+  Future<void> setDueAt({required int id, required DateTime? dueAt}) async {
+    final db = await _appDb.db;
+    await db.update(
+      'tasks',
+      {'due_at': dueAt?.toIso8601String()},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<void> setDone({required int id, required bool isDone}) async {
     final db = await _appDb.db;
     await db.update(
