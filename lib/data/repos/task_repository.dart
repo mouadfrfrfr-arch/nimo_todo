@@ -2,6 +2,7 @@ import 'package:nimo_todo/core/date_utils.dart';
 import 'package:nimo_todo/data/db/app_db.dart';
 import 'package:nimo_todo/data/mappers/task_mapper.dart';
 import 'package:nimo_todo/data/models/task.dart';
+import 'package:nimo_todo/notifications/notification_service.dart';
 
 class TaskRepository {
   TaskRepository({AppDb? appDb}) : _appDb = appDb ?? AppDb.instance;
@@ -12,6 +13,7 @@ class TaskRepository {
     String? notes,
     required String listId,
     DateTime? dueAt,
+    DateTime? reminderAt,
   }) async {
     final db = await _appDb.db;
     final now = DateTime.now();
@@ -22,12 +24,44 @@ class TaskRepository {
       notes: (notes == null || notes.trim().isEmpty) ? null : notes.trim(),
       createdAt: now,
       dueAt: dueAt,
+      reminderAt: reminderAt,
       isDone: false,
       priority: 0,
       listId: listId,
     );
 
-    return db.insert('tasks', TaskMapper.toRow(task));
+    final id = await db.insert('tasks', TaskMapper.toRow(task));
+
+    if (reminderAt != null) {
+      await NotificationService.instance.requestPermissionsIfNeeded();
+      await NotificationService.instance.scheduleTaskReminder(
+        taskId: id,
+        title: task.title,
+        when: reminderAt,
+      );
+    }
+
+    return id;
+  }
+
+  Future<int> createTaskFromQuickAdd({
+    required String listId,
+    required String title,
+    DateTime? dueAt,
+    int? remindMinutesBefore,
+  }) async {
+    DateTime? reminderAt;
+    if (dueAt != null) {
+      final mins = remindMinutesBefore ?? 15;
+      reminderAt = dueAt.subtract(Duration(minutes: mins));
+    }
+
+    return createTask(
+      title: title,
+      listId: listId,
+      dueAt: dueAt,
+      reminderAt: reminderAt,
+    );
   }
 
   Future<int> createInboxTask({
@@ -93,7 +127,6 @@ class TaskRepository {
     final n = now ?? DateTime.now();
     final start = DateUtilsX.startOfDay(n);
 
-    // All scheduled (has due_at), today and future
     final rows = await db.query(
       'tasks',
       where: 'is_done = 0 AND due_at IS NOT NULL AND due_at >= ?',
@@ -122,5 +155,9 @@ class TaskRepository {
       where: 'id = ?',
       whereArgs: [id],
     );
+
+    if (isDone) {
+      await NotificationService.instance.cancelTaskReminder(id);
+    }
   }
 }

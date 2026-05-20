@@ -1,7 +1,7 @@
 name: nimo_todo
 description: Nimo Todo Lis — offline local-first todo app (Flutter + SQLite).
 publish_to: "none"
-version: 0.2.2+4
+version: 0.3.0+5
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -18,6 +18,9 @@ dependencies:
   # App lock
   local_auth: ^2.2.0
   flutter_secure_storage: ^9.2.2
+  # Local notifications (reminders)
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
 
 
 dev_dependencies:

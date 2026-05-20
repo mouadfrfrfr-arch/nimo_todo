@@ -4,9 +4,10 @@ class Task {
   final String? notes;
   final DateTime createdAt;
   final DateTime? dueAt;
+  final DateTime? reminderAt;
   final bool isDone;
   final int priority; // 0 none, 1 low, 2 med, 3 high
-  final String listId; // Phase 1: 'inbox' default
+  final String listId;
 
   const Task({
     this.id,
@@ -14,6 +15,7 @@ class Task {
     this.notes,
     required this.createdAt,
     this.dueAt,
+    this.reminderAt,
     required this.isDone,
     required this.priority,
     required this.listId,
@@ -25,6 +27,7 @@ class Task {
     String? notes,
     DateTime? createdAt,
     DateTime? dueAt,
+    DateTime? reminderAt,
     bool? isDone,
     int? priority,
     String? listId,
@@ -35,6 +38,7 @@ class Task {
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       dueAt: dueAt ?? this.dueAt,
+      reminderAt: reminderAt ?? this.reminderAt,
       isDone: isDone ?? this.isDone,
       priority: priority ?? this.priority,
       listId: listId ?? this.listId,

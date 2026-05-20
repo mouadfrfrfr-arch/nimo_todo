@@ -21,7 +21,7 @@ class AppDb {
     final database = await openDatabase(
       path,
       password: key,
-      version: 2,
+      version: 3,
       onCreate: (db, _) async {
         await db.execute('''
           CREATE TABLE tasks (
@@ -30,6 +30,7 @@ class AppDb {
             notes TEXT,
             created_at TEXT NOT NULL,
             due_at TEXT,
+            reminder_at TEXT,
             is_done INTEGER NOT NULL,
             priority INTEGER NOT NULL,
             list_id TEXT NOT NULL
@@ -63,9 +64,6 @@ class AppDb {
         });
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        // NOTE: SQLCipher cannot read old unencrypted DB. If you already ran the app
-        // in Phase 1, delete the app from the emulator/device (or clear storage)
-        // so it recreates the DB encrypted.
         if (oldVersion < 2) {
           await db.execute('''
             CREATE TABLE lists (
@@ -87,6 +85,10 @@ class AppDb {
             'sort_order': 0,
             'created_at': DateTime.now().toIso8601String(),
           });
+        }
+
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE tasks ADD COLUMN reminder_at TEXT;');
         }
       },
     );
