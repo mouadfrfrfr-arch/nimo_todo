@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nimo_todo/data/models/todo_list.dart';
 import 'package:nimo_todo/data/repos/list_repository.dart';
 import 'package:nimo_todo/ui/screens/list_detail_screen.dart';
+import 'package:nimo_todo/ui/widgets/premium_button.dart';
 
 class ListsScreen extends StatefulWidget {
   const ListsScreen({super.key});
@@ -27,45 +28,47 @@ class _ListsScreenState extends State<ListsScreen> {
         final items = snap.data ?? const <TodoList>[];
 
         return ListView(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
           children: [
             Row(
               children: [
-                Text('Projects', style: Theme.of(context).textTheme.titleLarge),
+                Text('Projects', style: Theme.of(context).textTheme.headlineSmall),
                 const Spacer(),
-                IconButton(
-                  tooltip: 'New list',
+                PremiumButton(
+                  label: 'Add',
+                  icon: Icons.add,
                   onPressed: _createList,
-                  icon: const Icon(Icons.add),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            ...items.map((l) => Card(
-                  child: ListTile(
-                    leading: Icon(l.id == 'inbox' ? Icons.inbox : Icons.folder_outlined),
-                    title: Text(l.name),
-                    subtitle: (l.id == 'inbox') ? const Text('Default capture list') : null,
-                    trailing: (l.id == 'inbox')
-                        ? null
-                        : PopupMenuButton<String>(
-                            onSelected: (v) {
-                              if (v == 'rename') _renameList(l);
-                              if (v == 'delete') _deleteList(l);
-                            },
-                            itemBuilder: (context) => const [
-                              PopupMenuItem(value: 'rename', child: Text('Rename')),
-                              PopupMenuItem(value: 'delete', child: Text('Delete')),
-                            ],
-                          ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => ListDetailScreen(list: l)),
-                      );
-                    },
-                  ),
-                )),
+            const SizedBox(height: 16),
+            ...items.map(
+              (l) => Card(
+                child: ListTile(
+                  leading: Icon(l.id == 'inbox' ? Icons.inbox : Icons.folder_outlined),
+                  title: Text(l.name),
+                  subtitle: (l.id == 'inbox') ? const Text('Default capture list') : null,
+                  trailing: (l.id == 'inbox')
+                      ? null
+                      : PopupMenuButton<String>(
+                          onSelected: (v) {
+                            if (v == 'rename') _renameList(l);
+                            if (v == 'delete') _deleteList(l);
+                          },
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(value: 'rename', child: Text('Rename')),
+                            PopupMenuItem(value: 'delete', child: Text('Delete')),
+                          ],
+                        ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => ListDetailScreen(list: l)),
+                    );
+                  },
+                ),
+              ),
+            ),
           ],
         );
       },
@@ -73,14 +76,14 @@ class _ListsScreenState extends State<ListsScreen> {
   }
 
   Future<void> _createList() async {
-    final name = await _promptText(title: 'New list', hint: 'e.g. Work');
+    final name = await _promptText(title: 'New project', hint: 'e.g. Work');
     if (name == null) return;
     await _repo.createList(name: name);
     if (mounted) setState(() {});
   }
 
   Future<void> _renameList(TodoList l) async {
-    final name = await _promptText(title: 'Rename list', initial: l.name);
+    final name = await _promptText(title: 'Rename project', initial: l.name);
     if (name == null) return;
     await _repo.renameList(id: l.id, name: name);
     if (mounted) setState(() {});
@@ -91,7 +94,7 @@ class _ListsScreenState extends State<ListsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Delete "${l.name}"?'),
-        content: const Text('Tasks in this list will be moved to Inbox.'),
+        content: const Text('Tasks in this project will be moved to Inbox.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
