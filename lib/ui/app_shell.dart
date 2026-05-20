@@ -19,6 +19,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   int _index = 0;
   final _lock = AppLockController();
 
+  DateTime? _lastUnlockedAt;
+  bool _lockScreenOpen = false;
+
   final _screens = const [
     TodayScreen(),
     InboxScreen(),
@@ -31,7 +34,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeLock());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeLock(reason: 'startup'));
   }
 
   @override
@@ -42,20 +45,50 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _onBackgrounded();
+    }
+
     if (state == AppLifecycleState.resumed) {
-      _maybeLock();
+      _maybeLock(reason: 'resume');
     }
   }
 
-  Future<void> _maybeLock() async {
+  Future<void> _onBackgrounded() async {
+    final enabled = await _lock.isEnabled();
+    if (!enabled) return;
+
+    final lockOnBg = await _lock.lockOnBackground();
+    if (!lockOnBg) return;
+
+    // Force re-auth on next resume
+    _lastUnlockedAt = null;
+  }
+
+  Future<void> _maybeLock({required String reason}) async {
+    if (_lockScreenOpen) return;
+
     final enabled = await _lock.isEnabled();
     if (!enabled || !mounted) return;
 
-    // Present lock screen
-    await Navigator.push(
+    final delay = await _lock.lockDelaySeconds();
+    final now = DateTime.now();
+
+    final last = _lastUnlockedAt;
+    final needsLock = (last == null) || now.difference(last).inSeconds >= delay;
+
+    if (!needsLock) return;
+
+    _lockScreenOpen = true;
+    final ok = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => const LockScreen(), fullscreenDialog: true),
     );
+    _lockScreenOpen = false;
+
+    if (ok == true) {
+      _lastUnlockedAt = DateTime.now();
+    }
   }
 
   @override
