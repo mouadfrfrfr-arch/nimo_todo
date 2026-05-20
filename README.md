@@ -1,6 +1,12 @@
 # Nimo Todo Lis
 
-Offline, local-first to-do app built with **Flutter** + **SQLite**.
+Offline, local-first to-do app built with **Flutter**.
+
+## Security (Phase 2)
+- **App Lock**: optional biometric/device authentication on open
+- **Local encryption**: database encrypted using **SQLCipher** (`sqflite_sqlcipher`)
+
+> Note: switching from unencrypted SQLite (Phase 1) to SQLCipher requires a fresh install / clearing app storage.
 
 ## Phase 1 (MVP)
 Screens:
@@ -9,10 +15,6 @@ Screens:
 - Lists
 - Upcoming
 - Settings
-
-## Current status
-- Phase 1.0 scaffold: navigation + drawer + DB
-- Phase 1.1: Inbox create/list/complete (local)
 
 ## Run
 ```bash

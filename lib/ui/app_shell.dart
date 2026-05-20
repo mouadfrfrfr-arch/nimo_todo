@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:nimo_todo/security/app_lock_controller.dart';
 import 'package:nimo_todo/ui/screens/inbox_screen.dart';
 import 'package:nimo_todo/ui/screens/lists_screen.dart';
+import 'package:nimo_todo/ui/screens/lock_screen.dart';
 import 'package:nimo_todo/ui/screens/settings_screen.dart';
 import 'package:nimo_todo/ui/screens/today_screen.dart';
 import 'package:nimo_todo/ui/screens/upcoming_screen.dart';
@@ -13,8 +15,9 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   int _index = 0;
+  final _lock = AppLockController();
 
   final _screens = const [
     TodayScreen(),
@@ -23,6 +26,37 @@ class _AppShellState extends State<AppShell> {
     UpcomingScreen(),
     SettingsScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeLock());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _maybeLock();
+    }
+  }
+
+  Future<void> _maybeLock() async {
+    final enabled = await _lock.isEnabled();
+    if (!enabled || !mounted) return;
+
+    // Present lock screen
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LockScreen(), fullscreenDialog: true),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

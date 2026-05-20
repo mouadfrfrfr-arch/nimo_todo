@@ -1,6 +1,7 @@
+import 'package:nimo_todo/security/db_key_manager.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 
 class AppDb {
   static final AppDb instance = AppDb._();
@@ -15,8 +16,11 @@ class AppDb {
     final dir = await getApplicationDocumentsDirectory();
     final path = p.join(dir.path, 'nimo_todo.db');
 
+    final key = await DbKeyManager().getOrCreateDbKey();
+
     final database = await openDatabase(
       path,
+      password: key,
       version: 2,
       onCreate: (db, _) async {
         await db.execute('''
@@ -51,7 +55,6 @@ class AppDb {
           ON lists(sort_order);
         ''');
 
-        // Default Inbox list
         await db.insert('lists', {
           'id': 'inbox',
           'name': 'Inbox',
@@ -60,6 +63,9 @@ class AppDb {
         });
       },
       onUpgrade: (db, oldVersion, newVersion) async {
+        // NOTE: SQLCipher cannot read old unencrypted DB. If you already ran the app
+        // in Phase 1, delete the app from the emulator/device (or clear storage)
+        // so it recreates the DB encrypted.
         if (oldVersion < 2) {
           await db.execute('''
             CREATE TABLE lists (
@@ -75,7 +81,6 @@ class AppDb {
             ON lists(sort_order);
           ''');
 
-          // Default Inbox list
           await db.insert('lists', {
             'id': 'inbox',
             'name': 'Inbox',
