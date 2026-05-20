@@ -17,7 +17,7 @@ class AppDb {
 
     final database = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, _) async {
         await db.execute('''
           CREATE TABLE tasks (
@@ -36,6 +36,53 @@ class AppDb {
           CREATE INDEX idx_tasks_list_done_due
           ON tasks(list_id, is_done, due_at);
         ''');
+
+        await db.execute('''
+          CREATE TABLE lists (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            sort_order INTEGER NOT NULL,
+            created_at TEXT NOT NULL
+          );
+        ''');
+
+        await db.execute('''
+          CREATE INDEX idx_lists_sort
+          ON lists(sort_order);
+        ''');
+
+        // Default Inbox list
+        await db.insert('lists', {
+          'id': 'inbox',
+          'name': 'Inbox',
+          'sort_order': 0,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            CREATE TABLE lists (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              sort_order INTEGER NOT NULL,
+              created_at TEXT NOT NULL
+            );
+          ''');
+
+          await db.execute('''
+            CREATE INDEX idx_lists_sort
+            ON lists(sort_order);
+          ''');
+
+          // Default Inbox list
+          await db.insert('lists', {
+            'id': 'inbox',
+            'name': 'Inbox',
+            'sort_order': 0,
+            'created_at': DateTime.now().toIso8601String(),
+          });
+        }
       },
     );
 
