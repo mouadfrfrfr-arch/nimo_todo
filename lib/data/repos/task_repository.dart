@@ -7,9 +7,10 @@ class TaskRepository {
   TaskRepository({AppDb? appDb}) : _appDb = appDb ?? AppDb.instance;
   final AppDb _appDb;
 
-  Future<int> createInboxTask({
+  Future<int> createTask({
     required String title,
     String? notes,
+    required String listId,
   }) async {
     final db = await _appDb.db;
     final now = DateTime.now();
@@ -22,19 +23,33 @@ class TaskRepository {
       dueAt: null,
       isDone: false,
       priority: 0,
-      listId: 'inbox',
+      listId: listId,
     );
 
     return db.insert('tasks', TaskMapper.toRow(task));
   }
 
-  Future<List<Task>> listInboxTasks({bool includeDone = false}) async {
+  Future<int> createInboxTask({
+    required String title,
+    String? notes,
+  }) {
+    return createTask(title: title, notes: notes, listId: 'inbox');
+  }
+
+  Future<List<Task>> listInboxTasks({bool includeDone = false}) {
+    return listTasksByList(listId: 'inbox', includeDone: includeDone);
+  }
+
+  Future<List<Task>> listTasksByList({
+    required String listId,
+    bool includeDone = false,
+  }) async {
     final db = await _appDb.db;
 
     final rows = await db.query(
       'tasks',
       where: includeDone ? 'list_id = ?' : 'list_id = ? AND is_done = 0',
-      whereArgs: const ['inbox'],
+      whereArgs: [listId],
       orderBy: 'created_at DESC',
     );
 

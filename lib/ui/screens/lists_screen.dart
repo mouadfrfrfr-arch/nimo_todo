@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nimo_todo/data/models/todo_list.dart';
 import 'package:nimo_todo/data/repos/list_repository.dart';
+import 'package:nimo_todo/ui/screens/list_detail_screen.dart';
 
 class ListsScreen extends StatefulWidget {
   const ListsScreen({super.key});
@@ -58,7 +59,10 @@ class _ListsScreenState extends State<ListsScreen> {
                             ],
                           ),
                     onTap: () {
-                      // Phase 1.3.1: open list details + tasks
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => ListDetailScreen(list: l)),
+                      );
                     },
                   ),
                 )),
