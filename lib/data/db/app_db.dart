@@ -56,12 +56,16 @@ class AppDb {
           ON lists(sort_order);
         ''');
 
-        await db.insert('lists', {
-          'id': 'inbox',
-          'name': 'Inbox',
-          'sort_order': 0,
-          'created_at': DateTime.now().toIso8601String(),
-        });
+        await db.insert(
+          'lists',
+          {
+            'id': 'inbox',
+            'name': 'Inbox',
+            'sort_order': 0,
+            'created_at': DateTime.now().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -79,12 +83,16 @@ class AppDb {
             ON lists(sort_order);
           ''');
 
-          await db.insert('lists', {
-            'id': 'inbox',
-            'name': 'Inbox',
-            'sort_order': 0,
-            'created_at': DateTime.now().toIso8601String(),
-          });
+          await db.insert(
+            'lists',
+            {
+              'id': 'inbox',
+              'name': 'Inbox',
+              'sort_order': 0,
+              'created_at': DateTime.now().toIso8601String(),
+            },
+            conflictAlgorithm: ConflictAlgorithm.ignore,
+          );
         }
 
         if (oldVersion < 3) {

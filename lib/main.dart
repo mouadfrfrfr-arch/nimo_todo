@@ -43,7 +43,7 @@ class _NimoTodoAppState extends State<NimoTodoApp> with WidgetsBindingObserver {
     final app = MaterialApp(
       title: 'Nimo Todo Lis',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(),
+      theme: AppTheme.light(),
       home: const StartScreen(),
     );
 
@@ -55,7 +55,7 @@ class _NimoTodoAppState extends State<NimoTodoApp> with WidgetsBindingObserver {
         Positioned.fill(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: Container(color: Colors.black.withOpacity(0.10)),
+            child: Container(color: Colors.black.withOpacity(0.08)),
           ),
         ),
       ],
