@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Palette (taken to match the FigJam look: deep navy + violet accent + soft surfaces)
+  // Palette (premium dark + violet accent)
   static const _bg = Color(0xFF0E1020);
   static const _card = Color(0xFF171A2E);
   static const _card2 = Color(0xFF1D2140);
@@ -33,7 +33,7 @@ class AppTheme {
         bodyMedium: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _muted),
         labelLarge: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _muted),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: _card,
         elevation: 0,
         shape: RoundedRectangleBorder(

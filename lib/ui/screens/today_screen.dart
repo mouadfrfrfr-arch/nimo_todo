@@ -137,7 +137,7 @@ class _TaskTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
-                  border: BorderSide(color: Theme.of(context).colorScheme.outline),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
                 ),
                 child: Text(timeLabel, style: Theme.of(context).textTheme.labelLarge),
               ),

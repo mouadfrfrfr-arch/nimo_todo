@@ -27,14 +27,12 @@ class NotificationService {
 
   Future<bool> requestPermissionsIfNeeded() async {
     // iOS requires explicit permission request
-    final ios = _plugin.resolvePlatformSpecificImplementation<DarwinFlutterLocalNotificationsPlugin>();
+    final ios = _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
     if (ios != null) {
       final ok = await ios.requestPermissions(alert: true, badge: true, sound: true);
       return ok ?? false;
     }
 
-    // Android (13+) permission is handled by the plugin internally on many setups,
-    // but we keep this as a safe no-op.
     return true;
   }
 
