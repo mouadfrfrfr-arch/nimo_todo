@@ -44,37 +44,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
           future: _lock.isEnabled(),
           builder: (context, snap) {
             final enabled = snap.data ?? false;
-            return FutureBuilder<String?>(
-              future: _lock.passcode(),
-              builder: (context, pSnap) {
-                final hasPasscode = (pSnap.data ?? '').isNotEmpty;
-                return ListTile(
-                  enabled: enabled,
-                  leading: const Icon(Icons.password_outlined),
-                  title: const Text('Passcode'),
-                  subtitle: Text(hasPasscode ? 'Passcode set' : 'Not set'),
-                  trailing: hasPasscode
-                      ? TextButton(
-                          onPressed: !enabled
-                              ? null
-                              : () async {
-                                  await _lock.setPasscode(null);
-                                  if (mounted) setState(() {});
-                                },
-                          child: const Text('Remove'),
-                        )
-                      : null,
-                  onTap: !enabled
-                      ? null
-                      : () async {
-                          final ok = await Navigator.push<bool>(
-                            context,
-                            MaterialPageRoute(builder: (_) => const PasscodeSetupScreen()),
-                          );
-                          if (ok == true && mounted) setState(() {});
-                        },
-                );
-              },
+            return Opacity(
+              opacity: enabled ? 1 : 0.55,
+              child: FutureBuilder<String?>(
+                future: _lock.passcode(),
+                builder: (context, pSnap) {
+                  final hasPasscode = (pSnap.data ?? '').isNotEmpty;
+                  return ListTile(
+                    leading: const Icon(Icons.password_outlined),
+                    title: const Text('Passcode'),
+                    subtitle: Text(hasPasscode ? 'Passcode set' : 'Not set'),
+                    trailing: hasPasscode
+                        ? TextButton(
+                            onPressed: !enabled
+                                ? null
+                                : () async {
+                                    await _lock.setPasscode(null);
+                                    if (mounted) setState(() {});
+                                  },
+                            child: const Text('Remove'),
+                          )
+                        : null,
+                    onTap: !enabled
+                        ? null
+                        : () async {
+                            final ok = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(builder: (_) => const PasscodeSetupScreen()),
+                            );
+                            if (ok == true && mounted) setState(() {});
+                          },
+                  );
+                },
+              ),
             );
           },
         ),
@@ -82,42 +84,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
           future: _lock.isEnabled(),
           builder: (context, snap) {
             final enabled = snap.data ?? false;
-            return FutureBuilder<int>(
-              future: _lock.lockDelaySeconds(),
-              builder: (context, dSnap) {
-                final delay = dSnap.data ?? 0;
-                return ListTile(
-                  enabled: enabled,
-                  leading: const Icon(Icons.timer_outlined),
-                  title: const Text('Lock delay'),
-                  subtitle: Text(_delayOptions[delay] ?? '${delay}s'),
-                  onTap: !enabled
-                      ? null
-                      : () async {
-                          final picked = await showModalBottomSheet<int>(
-                            context: context,
-                            showDragHandle: true,
-                            builder: (_) => SafeArea(
-                              child: ListView(
-                                shrinkWrap: true,
-                                children: [
-                                  for (final e in _delayOptions.entries)
-                                    ListTile(
-                                      title: Text(e.value),
-                                      trailing: (delay == e.key) ? const Icon(Icons.check) : null,
-                                      onTap: () => Navigator.pop(context, e.key),
-                                    )
-                                ],
+            return Opacity(
+              opacity: enabled ? 1 : 0.55,
+              child: FutureBuilder<int>(
+                future: _lock.lockDelaySeconds(),
+                builder: (context, dSnap) {
+                  final delay = dSnap.data ?? 0;
+                  return ListTile(
+                    leading: const Icon(Icons.timer_outlined),
+                    title: const Text('Lock delay'),
+                    subtitle: Text(_delayOptions[delay] ?? '${delay}s'),
+                    onTap: !enabled
+                        ? null
+                        : () async {
+                            final picked = await showModalBottomSheet<int>(
+                              context: context,
+                              showDragHandle: true,
+                              builder: (_) => SafeArea(
+                                child: ListView(
+                                  shrinkWrap: true,
+                                  children: [
+                                    for (final e in _delayOptions.entries)
+                                      ListTile(
+                                        title: Text(e.value),
+                                        trailing: (delay == e.key) ? const Icon(Icons.check) : null,
+                                        onTap: () => Navigator.pop(context, e.key),
+                                      )
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
+                            );
 
-                          if (picked == null) return;
-                          await _lock.setLockDelaySeconds(picked);
-                          if (mounted) setState(() {});
-                        },
-                );
-              },
+                            if (picked == null) return;
+                            await _lock.setLockDelaySeconds(picked);
+                            if (mounted) setState(() {});
+                          },
+                  );
+                },
+              ),
             );
           },
         ),
@@ -125,24 +129,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           future: _lock.isEnabled(),
           builder: (context, snap) {
             final enabled = snap.data ?? false;
-            return FutureBuilder<bool>(
-              future: _lock.lockOnBackground(),
-              builder: (context, bSnap) {
-                final v = bSnap.data ?? true;
-                return SwitchListTile(
-                  enabled: enabled,
-                  value: v,
-                  secondary: const Icon(Icons.visibility_off_outlined),
-                  title: const Text('Lock when backgrounded'),
-                  subtitle: const Text('Require unlock after leaving the app.'),
-                  onChanged: !enabled
-                      ? null
-                      : (nv) async {
-                          await _lock.setLockOnBackground(nv);
-                          if (mounted) setState(() {});
-                        },
-                );
-              },
+            return Opacity(
+              opacity: enabled ? 1 : 0.55,
+              child: FutureBuilder<bool>(
+                future: _lock.lockOnBackground(),
+                builder: (context, bSnap) {
+                  final v = bSnap.data ?? true;
+                  return SwitchListTile(
+                    value: v,
+                    secondary: const Icon(Icons.visibility_off_outlined),
+                    title: const Text('Lock when backgrounded'),
+                    subtitle: const Text('Require unlock after leaving the app.'),
+                    onChanged: !enabled
+                        ? null
+                        : (nv) async {
+                            await _lock.setLockOnBackground(nv);
+                            if (mounted) setState(() {});
+                          },
+                  );
+                },
+              ),
             );
           },
         ),
